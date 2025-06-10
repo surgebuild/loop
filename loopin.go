@@ -36,7 +36,7 @@ var (
 	// to decide whether we want to continue with the swap parameters as
 	// proposed by the server. It is a protection to prevent the server from
 	// getting us to lock up our funds to an arbitrary point in the future.
-	MaxLoopInAcceptDelta = int32(1500)
+	MaxLoopInAcceptDelta = int32(1000)
 
 	// MinLoopInExpiryDelta defines the minimum number of remaining blocks
 	// that we accept until htlc expiry path that opens up for us to sweep.

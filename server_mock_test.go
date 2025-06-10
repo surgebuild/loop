@@ -24,7 +24,7 @@ var (
 	testTime = time.Date(2018, time.January, 9, 14, 00, 00, 0, time.UTC)
 
 	testLoopOutMinOnChainCltvDelta = int32(30)
-	testLoopOutMaxOnChainCltvDelta = int32(40)
+	testLoopOutMaxOnChainCltvDelta = int32(144)
 	testChargeOnChainCltvDelta     = int32(100)
 	testSwapFee                    = btcutil.Amount(210)
 	testFixedPrepayAmount          = btcutil.Amount(100)

@@ -190,6 +190,9 @@ type Config struct {
 	MaxStaticAddrHtlcFeePercentage       float64 `long:"maxstaticaddrhtlcfeepercentage" description:"The maximum fee percentage that the server can charge for the htlc tx."`
 	MaxStaticAddrHtlcBackupFeePercentage float64 `long:"maxstaticaddrhtlcbackupfeepercentage" description:"The maximum fee percentage that the server can charge for the htlc backup tx. The backup transaction is only used in rare cases when the regular htlc tx is not confirmed on time. These backup transactions refer to high fee or extremely high fee transactions in the API."`
 
+	// MaxCltvDelta is the maximum CLTV delta for loop out swaps.
+	MaxCltvDelta int32 `long:"maxcltvdelta" description:"Maximum CLTV delta for loop out swaps (default: 144 blocks)"`
+
 	EnableExperimental bool `long:"experimental" description:"Enable experimental features: reservations"`
 
 	MigrationRPCBatchSize int `long:"migrationrpcbatchsize" description:"The RPC batch size to use during migrations."`
@@ -241,6 +244,7 @@ func DefaultConfig() Config {
 		MaxPaymentRetries:                    defaultMaxPaymentRetries,
 		MaxStaticAddrHtlcFeePercentage:       defaultMaxStaticAddrHtlcFeePercentage,
 		MaxStaticAddrHtlcBackupFeePercentage: defaultMaxStaticAddrHtlcBackupFeePercentage,
+		MaxCltvDelta:                         1000,
 		EnableExperimental:                   false,
 		MigrationRPCBatchSize:                defaultRPCBatchSize,
 		Lnd: &lndConfig{

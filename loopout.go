@@ -45,7 +45,7 @@ const (
 
 	// MinLoopOutPreimageRevealDelta configures the minimum number of
 	// remaining blocks before htlc expiry required to reveal preimage.
-	MinLoopOutPreimageRevealDelta = 20
+	MinLoopOutPreimageRevealDelta = 20 // Adjusted for 10-second blocks
 
 	// DefaultSweepConfTarget is the default confirmation target we'll use
 	// when sweeping on-chain HTLCs.

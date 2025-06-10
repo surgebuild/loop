@@ -781,11 +781,19 @@ func (s *swapClientServer) LoopOutTerms(ctx context.Context,
 		return nil, err
 	}
 
+	// Override MaxCltvDelta with locally configured value if set
+	maxCltvDelta := terms.MaxCltvDelta
+	if s.config.MaxCltvDelta > 0 {
+		maxCltvDelta = s.config.MaxCltvDelta
+		infof("Using configured MaxCltvDelta: %d (server default was: %d)",
+			maxCltvDelta, terms.MaxCltvDelta)
+	}
+
 	return &looprpc.OutTermsResponse{
 		MinSwapAmount: int64(terms.MinSwapAmount),
 		MaxSwapAmount: int64(terms.MaxSwapAmount),
 		MinCltvDelta:  terms.MinCltvDelta,
-		MaxCltvDelta:  terms.MaxCltvDelta,
+		MaxCltvDelta:  maxCltvDelta,
 	}, nil
 }
 

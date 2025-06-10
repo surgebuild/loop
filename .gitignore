@@ -51,3 +51,6 @@ profile.tmp
 .DS_Store
 
 .vscode
+loop-custom
+loopd-custom
+signet-data
