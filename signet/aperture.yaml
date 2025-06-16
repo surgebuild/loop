@@ -1,0 +1,44 @@
+# Aperture Configuration for Loop Signet Environment
+# This config sets up Aperture as an L402 authentication proxy
+
+# Listen on localhost:11018 for Loop client connections
+listenaddr: "localhost:11018"
+
+# Debug level for troubleshooting
+debuglevel: "debug"
+
+# Disable TLS for local development (running on localhost)
+insecure: true
+
+# Disable authenticator since we're running locally
+authenticator:
+  disable: true
+
+# Enable hashmail for LNC support (optional)
+hashmail:
+  enabled: false
+
+# Disable prometheus metrics for simplicity
+prometheus:
+  enabled: false
+
+# ETCD configuration for storing L402 tokens
+etcd:
+  host: "localhost:2379"
+
+# LND connection for L402 payments (connect to your existing LND)
+lnd:
+  host: "localhost:10009"
+  macaroonpath: "/root/.lnd/data/chain/bitcoin/signet/admin.macaroon"
+  tlspath: "/root/.lnd/tls.cert"
+
+# Services configuration - proxy requests to local Loop server
+services:
+  - name: "loopserver"
+    tier: "free"
+    hostregexp: ".*"
+    pathregexp: ".*"
+    address: "localhost:11009"
+    protocol: "http"
+    constraints:
+      - "free" 

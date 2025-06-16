@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # The absolute directory this file is located in.
-COMPOSE="docker-compose -p signet"
+COMPOSE="docker compose -p signet"
 
 # Configuration for your existing LND
 LND_DIR=${LND_DIR:-"/root/.lnd"}
@@ -25,7 +25,7 @@ function start() {
   echo "Connecting to your existing LND at localhost:10009"
   echo "LND directory: $LND_DIR"
   
-  # Export LND directory for docker-compose
+  # Export LND directory for docker compose
   export LND_DIR="$LND_DIR"
   
   # Check if your LND is accessible

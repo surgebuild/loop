@@ -61,11 +61,20 @@ services:
     volumes:
       - "loopserver:/root/loopserver"
       - "aperture:/root/.aperture"
+
       # Mount your existing LND directory
       - "${LND_DIR:-/root/.lnd}:/root/.lnd"
+      # Mount aperture config file
+      - "./aperture.yaml:/root/.aperture/aperture.yaml:ro"
     entrypoint: ["/bin/aperture"]
     command:
       - "--configfile=/root/.aperture/aperture.yaml"
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "11018"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
 
   # Loop client connecting to local aperture proxy and your existing LND
   loopclient:
@@ -82,15 +91,16 @@ services:
       # Mount your existing LND directory
       - "${LND_DIR:-/root/.lnd}:/root/.lnd"
     depends_on:
-      - aperture
+      aperture:
+        condition: service_healthy
     command:
       - "loopd"
       - "--experimental"
       - "--network=signet"
       - "--debuglevel=debug"
-      # Connect to LOCAL aperture proxy on localhost
+      # Connect to LOCAL aperture proxy on localhost (no TLS for local connection)
       - "--server.host=localhost:11018"
-      - "--server.tlspath=/root/.loop/aperture-tls.cert"
+      - "--server.notls"
       # Connect to your existing LND on localhost
       - "--lnd.host=localhost:10009"
       - "--lnd.macaroonpath=/root/.lnd/data/chain/bitcoin/signet/admin.macaroon"
