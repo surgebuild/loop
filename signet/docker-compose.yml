@@ -53,6 +53,9 @@ services:
       - "--experimental"
       - "--network=signet"
       - "--debuglevel=debug"
+      # Use custom ports as requested
+      - "--rpclisten=127.0.0.1:11010"
+      - "--restlisten=0.0.0.0:9080"
       # Connect directly to LOCAL loop server (bypass Aperture for simplicity)
       - "--server.host=localhost:11009"
       - "--server.notls"

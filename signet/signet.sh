@@ -17,7 +17,7 @@ function lnd() {
 }
 
 function loop() {
-  docker exec -ti loopclient-signet loop --network signet "$@"
+  docker exec -ti loopclient-signet loop --network signet --rpcserver 127.0.0.1:11010 "$@"
 }
 
 function start() {
@@ -50,8 +50,7 @@ function start() {
 }
 
 function setup() {  
-  echo "Copying aperture configuration files"
-  setup_aperture_config
+  echo "Setting up Loop environment (no Aperture needed)"
 
   echo "Checking Bitcoin signet status"
   bitcoin getblockchaininfo || echo "Warning: Could not connect to your Bitcoin signet node"
@@ -91,69 +90,8 @@ function setup() {
   fi
 }
 
-function setup_aperture_config() {
-  # Create the aperture config
-  write_aperture_config
-  
-  # Wait for aperture container to be ready and copy config
-  echo "Waiting for aperture container..."
-  while ! docker exec aperture-signet ls /root/.aperture >/dev/null 2>&1; do
-    sleep 2
-  done
-  
-  docker cp /tmp/aperture.yaml aperture-signet:/root/.aperture/aperture.yaml
-  
-  # Copy your LND TLS cert to aperture
-  if [ -f "${LND_DIR}/tls.cert" ]; then
-    docker cp "${LND_DIR}/tls.cert" aperture-signet:/root/.aperture/lnd-tls.cert
-  fi
-  
-  # Get aperture TLS cert for loop client
-  sleep 5
-  docker cp aperture-signet:/root/.aperture/tls.cert /tmp/aperture-tls.cert 2>/dev/null || echo "Aperture TLS cert not ready yet"
-  chmod 644 /tmp/aperture-tls.cert 2>/dev/null
-  docker cp /tmp/aperture-tls.cert loopclient-signet:/root/.loop/aperture-tls.cert 2>/dev/null || echo "Will copy aperture cert later"
-}
-
-function write_aperture_config() {
-  rm -rf /tmp/aperture.yaml
-  touch /tmp/aperture.yaml && cat > /tmp/aperture.yaml <<EOF
-listenaddr: '0.0.0.0:11018'
-staticroot: '/root/.aperture/static'
-servestatic: true
-debuglevel: trace
-insecure: false
-writetimeout: 0s
-
-servername: aperture
-autocert: false
-
-authenticator:
- lndhost: localhost:10009
- tlspath: /root/.aperture/lnd-tls.cert
- macdir: /root/.lnd/data/chain/bitcoin/signet
- network: signet
-
-etcd:
- host: 'localhost:2379'
- user:
- password:
-
-services:
- - name: loop
-   hostregexp: '^.*$'
-   pathregexp: '^/looprpc.*$'
-   address: 'localhost:11009'
-   protocol: https
-   tlscertpath: /root/.aperture/loopserver-tls.cert
-   price: 1000
-   authwhitelistpaths:
-     - '^/looprpc.SwapServer/LoopOutTerms.*$'
-     - '^/looprpc.SwapServer/LoopOutQuote.*$'
-     - '^/looprpc.SwapServer/LoopInTerms.*$'
-     - '^/looprpc.SwapServer/LoopInQuote.*$'
-EOF
-}
+# Aperture configuration functions removed - no longer needed
+# Loop client now connects directly to Loop server
 
 function status() {
   echo "=== Bitcoin Signet Status ==="
@@ -172,7 +110,7 @@ function status() {
   docker logs loopserver-signet --tail=5 2>/dev/null || echo "Loop server not ready"
   echo ""
   echo "=== Loop Client Status ==="
-  loop getinfo || echo "Loop client not ready yet"
+  docker exec loopclient-signet loop --network signet --rpcserver 127.0.0.1:11010 getinfo || echo "Loop client not ready yet"
 }
 
 function stop() {
