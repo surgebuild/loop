@@ -1,0 +1,102 @@
+version: "3.8"
+
+# Connect to your existing surge-network where your Bitcoin signet node runs
+networks:
+  surge-network:
+    external: true
+
+services:
+  # No bitcoind service needed - using your existing custom signet node
+  # No LND services needed - using your existing LND setup
+
+  # Local Loop Server for your custom signet - connects to your existing LND
+  loopserver:
+    image: lightninglabs/loopserver
+    container_name: loopserver-signet
+    restart: unless-stopped
+    network_mode: host # Use host networking to access your LND and Bitcoin node
+    volumes:
+      - "loopserver:/root/loopserver"
+      # Mount your existing LND directory to access certs and macaroons
+      - "${LND_DIR:-/root/.lnd}:/root/.lnd"
+    command:
+      - "daemon"
+      - "--maxamt=5000000"
+      # Connect to your existing LND
+      - "--lnd.host=localhost:10009"
+      - "--lnd.macaroondir=/root/.lnd/data/chain/bitcoin/signet/"
+      - "--lnd.tlspath=/root/.lnd/tls.cert"
+      # Connect to your Bitcoin signet node (accessible via host network)
+      - "--bitcoin.host=localhost:38332"
+      - "--bitcoin.user=password"
+      - "--bitcoin.password=password"
+      - "--bitcoin.zmqpubrawblock=tcp://localhost:28332"
+      - "--bitcoin.zmqpubrawtx=tcp://localhost:28333"
+
+  # ETCD for aperture
+  etcd:
+    image: bitnami/etcd:3.3.12
+    platform: linux/amd64
+    container_name: etcd-signet
+    restart: unless-stopped
+    ports:
+      - "2379:2379"
+      - "2380:2380"
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes
+
+  # Aperture proxy for L402 authentication
+  aperture:
+    build:
+      context: https://github.com/lightninglabs/aperture.git
+      dockerfile: Dockerfile
+      args:
+        checkout: v0.3.8-beta
+    container_name: aperture-signet
+    restart: unless-stopped
+    depends_on:
+      - loopserver
+      - etcd
+    network_mode: host # Use host networking to connect to localhost services
+    volumes:
+      - "loopserver:/root/loopserver"
+      - "aperture:/root/.aperture"
+      # Mount your existing LND directory
+      - "${LND_DIR:-/root/.lnd}:/root/.lnd"
+    entrypoint: ["/bin/aperture"]
+    command:
+      - "--configfile=/root/.aperture/aperture.yaml"
+
+  # Loop client connecting to local aperture proxy and your existing LND
+  loopclient:
+    image: loopd
+    container_name: loopclient-signet
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    network_mode: host # Use host networking to access your LND and aperture
+    volumes:
+      - "aperture:/root/.aperture"
+      - "loopclient:/root/.loop"
+      # Mount your existing LND directory
+      - "${LND_DIR:-/root/.lnd}:/root/.lnd"
+    depends_on:
+      - aperture
+    command:
+      - "loopd"
+      - "--experimental"
+      - "--network=signet"
+      - "--debuglevel=debug"
+      # Connect to LOCAL aperture proxy on localhost
+      - "--server.host=localhost:11018"
+      - "--server.tlspath=/root/.loop/aperture-tls.cert"
+      # Connect to your existing LND on localhost
+      - "--lnd.host=localhost:10009"
+      - "--lnd.macaroonpath=/root/.lnd/data/chain/bitcoin/signet/admin.macaroon"
+      - "--lnd.tlspath=/root/.lnd/tls.cert"
+
+volumes:
+  loopserver:
+  loopclient:
+  aperture:

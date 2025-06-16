@@ -206,7 +206,7 @@ type Config struct {
 const (
 	mainnetServer = "swap.lightning.today:11010"
 	testnetServer = "test.swap.lightning.today:11010"
-	signetServer  = "signet.swap.lightning.today:11010"
+	signetServer  = "localhost:11018"
 )
 
 // DefaultConfig returns all default values for the Config struct.
