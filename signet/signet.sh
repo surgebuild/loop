@@ -147,8 +147,11 @@ case "$1" in
     shift
     loop "$@"
     ;;
+  api)
+    api
+    ;;
   *)
-    echo "Usage: $0 {start|stop|status|logs|bitcoin|lnd|loop}"
+    echo "Usage: $0 {start|stop|status|logs|bitcoin|lnd|loop|api}"
     echo ""
     echo "Custom Signet Loop Environment"
     echo "Connects to your existing LND with max-cltv-expiry=300"
